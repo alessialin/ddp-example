@@ -1,0 +1,36 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+type: command
+
+# Name of the job
+name: ddp-mnist-training-job
+display_name: DDP MNIST Training Job
+description: Train a PyTorch model on MNIST using Distributed Data Parallel (DDP)
+
+# Compute target
+compute: azureml:gpu-cluster  # Replace with your compute target name
+
+# Environment definition
+environment: azureml:ml-gpu-tuning:5
+  # name: ddp-mnist-env
+  # image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04-py38-cuda11.7-cudnn8
+  # conda_file: null
+  # python:
+  #   interpreter: python3
+  #   requirements: ./requirements.txt
+
+# Distributed training configuration
+distribution:
+  type: pytorch
+  process_count_per_instance: 1  # Number of processes per node for DDP
+resources:
+  instance_count: 1  # Number of nodes for multi-node training
+
+# Command to run the training script
+command: >+
+  python test.py
+
+code: .
+# # Input/output directories (optional)
+# inputs: {}
+# outputs: {}
+# submit: az ml job create --file aml_job.yaml
