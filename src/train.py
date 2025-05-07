@@ -57,18 +57,19 @@ def train(rank: int, world_size: int, backend: str) -> None:
             ("nccl" or "gloo").
     """
     # Initialize the process group (if gpu init_method is env:// by default)
-    setup(rank, world_size, backend)
+    # setup(rank, world_size, backend)
 
     # Set the device
     torch.manual_seed(42)
+    local_rank = int(os.environ.get("LOCAL_RANK", 0))
     device = torch.device(
-        f"cuda:{rank}" if torch.cuda.is_available() else "cpu"
+        f"cuda:{local_rank}" if torch.cuda.is_available() else "cpu"
     )
 
     # Create the model and move it to the device
     model = SimpleCNN().to(device)
     ddp_model = DDP(
-        model, device_ids=[rank] if torch.cuda.is_available() else None
+        model, device_ids=[local_rank] if torch.cuda.is_available() else None
     )
 
     # Define loss and optimizer
@@ -108,7 +109,7 @@ def train(rank: int, world_size: int, backend: str) -> None:
     dist.destroy_process_group()
 
 
-def setup(rank: int, world_size: int, backend: str) -> None:
+def local_run(rank: int, world_size: int, *args, **kwargs) -> None:
     """
     Setup the distributed environment.
 
@@ -118,9 +119,12 @@ def setup(rank: int, world_size: int, backend: str) -> None:
         backend (str): Backend to use for distributed training
             ("nccl" or "gloo").
     """
-    os.environ.setdefault("MASTER_ADDR", "localhost")
-    os.environ.setdefault("MASTER_PORT", "12345")
-    dist.init_process_group(backend, rank=rank, world_size=world_size)
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = "12345"
+    os.environ["LOCAL_RANK"] = str(rank)
+    os.environ["WORLD_SIZE"] = str(world_size)
+    os.environ["RANK"] = str(rank)
+    train(*args, **kwargs)
 
 
 def main() -> None:
@@ -154,7 +158,7 @@ def main() -> None:
 
         # Spawn processes for distributed training
         mp.spawn(
-            train,
+            local_run,
             args=(world_size, backend),
             nprocs=world_size,
             join=True
