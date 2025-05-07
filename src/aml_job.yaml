@@ -9,20 +9,16 @@ description: Train a PyTorch model on MNIST using Distributed Data Parallel (DDP
 compute: azureml:gpu-cluster  # Replace with your compute target name
 
 # Environment definition
-environment: azureml:ml-gpu-tuning:5
-  # name: ddp-mnist-env
-  # image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04-py38-cuda11.7-cudnn8
-  # conda_file: null
-  # python:
-  #   interpreter: python3
-  #   requirements: ./requirements.txt
+environment: azureml:ml-gpu-tuning:5  # Replace with your environment name
 
 # Distributed training configuration
 distribution:
   type: pytorch
-  process_count_per_instance: 1  # Number of processes per node for DDP
+  # Number of processes per node for DDP
+  process_count_per_instance: 1
 resources:
-  instance_count: 2  # Number of nodes for multi-node training
+  # Number of nodes for multi-node training
+  instance_count: 2  
 
 # Command to run the training script
 command: >+
@@ -32,4 +28,3 @@ code: .
 # # Input/output directories (optional)
 # inputs: {}
 # outputs: {}
-# submit: az ml job create --file aml_job.yaml --resource-group slm --workspace-name slm_aml
