@@ -119,7 +119,7 @@ def main() -> None:
     if is_azure_ml:
         # Azure ML environment variables
         world_size = int(os.environ["WORLD_SIZE"])
-        rank = int(os.environ["AZUREML_COMPUTE_INSTANCE_NAME"])
+        rank = int(os.environ["RANK"])
         backend = os.environ.get(
             "BACKEND", "nccl" if torch.cuda.is_available() else "gloo"
         )
