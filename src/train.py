@@ -1,12 +1,13 @@
 import os
+
 import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
+import torch.nn as nn
+import torch.optim as optim
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader, DistributedSampler
 from torchvision import datasets, transforms
-import torch.nn as nn
-import torch.optim as optim
 
 
 # Define exxample model
@@ -56,7 +57,7 @@ def train(rank: int, world_size: int, backend: str) -> None:
             ("nccl" or "gloo").
     """
     # Initialize the process group (if gpu init_method is env:// by default)
-    dist.init_process_group(backend, rank=rank, world_size=world_size)
+    setup(rank, world_size, backend)
 
     # Set the device
     torch.manual_seed(42)
@@ -107,7 +108,21 @@ def train(rank: int, world_size: int, backend: str) -> None:
     dist.destroy_process_group()
 
 
-# Entry point
+def setup(rank: int, world_size: int, backend: str) -> None:
+    """
+    Setup the distributed environment.
+
+    Args:
+        rank (int): The rank of the current process in the distributed setup.
+        world_size (int): Total number of processes (GPUs across all nodes).
+        backend (str): Backend to use for distributed training
+            ("nccl" or "gloo").
+    """
+    os.environ.setdefault("MASTER_ADDR", "localhost")
+    os.environ.setdefault("MASTER_PORT", "12345")
+    dist.init_process_group(backend, rank=rank, world_size=world_size)
+
+
 def main() -> None:
     """
     Entry point for the script. Detects environment (Azure ML or local),
@@ -123,7 +138,9 @@ def main() -> None:
         backend = os.environ.get(
             "BACKEND", "nccl" if torch.cuda.is_available() else "gloo"
         )
-
+        print(
+            f"Running in Azure ML with {world_size} processes using {backend}"
+        )
         train(rank, world_size, backend)
     else:
         # Local execution
@@ -131,6 +148,11 @@ def main() -> None:
             torch.cuda.device_count() if torch.cuda.is_available() else 2
         )
         backend = "nccl" if torch.cuda.is_available() else "gloo"
+        print(
+            f"Running locally with {world_size} processes using {backend}"
+        )
+
+        # Spawn processes for distributed training
         mp.spawn(
             train,
             args=(world_size, backend),
