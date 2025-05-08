@@ -1,5 +1,5 @@
-# A Distributed Data Parallelization Example
-This repository provides an example of Distributed Data Parallelization (DDP) applied to a typical problem of training a CNN on the well-known MNIST dataset. 
+# A Distributed Data Parallel Example
+This repository provides an example of Distributed Data Parallel (DDP) applied to a typical problem of training a CNN on the well-known MNIST dataset. 
 
 ## Azure Machine Learning
 Submit job on Azure Machine Learning (AML) with the command:
