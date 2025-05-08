@@ -143,6 +143,7 @@ def local_run(rank: int, world_size: int, backend: str) -> None:
     Args:
         rank (int): The rank of the current process in the distributed setup.
         world_size (int): Total number of processes (GPUs across all nodes).
+        backend (str): Backend to use for distributed training
     """
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "12345"
