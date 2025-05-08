@@ -45,6 +45,30 @@ class SimpleCNN(nn.Module):
         return x
 
 
+def setup(backend: str) -> None:
+    """
+    Setup the distributed environment.
+
+    Args:
+        backend (str): Backend to use for distributed training
+            ("nccl" or "gloo").
+
+    """
+
+    dist.init_process_group(
+        backend=backend,
+        init_method="env://"
+    )
+    local_rank = int(os.environ.get("LOCAL_RANK", 0))
+    if torch.cuda.is_available():
+        torch.cuda.set_device(local_rank)
+        device = torch.device(f"cuda:{local_rank}")
+    else:
+        device = torch.device("cpu")
+
+    return device
+
+
 # Training function
 def train(rank: int, world_size: int, backend: str) -> None:
     """
@@ -57,20 +81,14 @@ def train(rank: int, world_size: int, backend: str) -> None:
             ("nccl" or "gloo").
     """
     # Initialize the process group (if gpu init_method is env:// by default)
-    # setup(rank, world_size, backend)
+    device = setup(backend)
 
     # Set the device
     torch.manual_seed(42)
-    local_rank = int(os.environ.get("LOCAL_RANK", 0))
-    device = torch.device(
-        f"cuda:{local_rank}" if torch.cuda.is_available() else "cpu"
-    )
 
     # Create the model and move it to the device
     model = SimpleCNN().to(device)
-    ddp_model = DDP(
-        model, device_ids=[local_rank] if torch.cuda.is_available() else None
-    )
+    ddp_model = DDP(model)
 
     # Define loss and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -105,26 +123,32 @@ def train(rank: int, world_size: int, backend: str) -> None:
             if batch_idx % 100 == 0 and rank == 0:
                 print(f"Epoch {epoch}, Batch {batch_idx}, Loss: {loss.item()}")
 
+    # Save the model
+    if rank == 0:
+        model_dir = "./outputs"
+        os.makedirs(model_dir, exist_ok=True)
+        model_path = os.path.join(model_dir, "mnist_cnn.pt")
+        # Save the underlying model (not the DDP wrapper)
+        torch.save(model.state_dict(), model_path)
+        print(f"Model saved to {model_path}")
+
     # Cleanup
     dist.destroy_process_group()
 
 
-def local_run(rank: int, world_size: int, *args, **kwargs) -> None:
+def local_run(rank: int, world_size: int, backend: str) -> None:
     """
     Setup the distributed environment.
 
     Args:
         rank (int): The rank of the current process in the distributed setup.
         world_size (int): Total number of processes (GPUs across all nodes).
-        backend (str): Backend to use for distributed training
-            ("nccl" or "gloo").
     """
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "12345"
-    os.environ["LOCAL_RANK"] = str(rank)
     os.environ["WORLD_SIZE"] = str(world_size)
     os.environ["RANK"] = str(rank)
-    train(*args, **kwargs)
+    train(rank, world_size, backend)
 
 
 def main() -> None:
