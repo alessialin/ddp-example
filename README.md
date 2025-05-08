@@ -1,12 +1,28 @@
 # A Distributed Data Parallel Example with PyTorch
 This repository provides an example of Distributed Data Parallel (DDP) applied to a typical problem of training a CNN on the well-known MNIST dataset. 
 
-## Azure Machine Learning
+## Prerequisites
+- Azure Machine Learning (AML) subscription
+- AML workspace
+- GPU quota
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- Python environment (3.12) with libraries within `requirements.txt`
+
+## Repo Structure
+```
+ddp-example/
+├── src/
+│   └── aml_job.yaml       # Script to run job on aml
+│   └── train.py           # Training script
+├── [output and data folders]       # gitignored
+```
+
+## Running on Azure Machine Learning
 Submit job on Azure Machine Learning (AML) with the command:
 
 `az ml job create --file aml_job.yaml --resource-group <your-resource-group> --workspace-name <your-workspace-name>`
 
-## Locally
+## Running Locally
 Submit the job locally on your machine:
 `python train.py`
 
