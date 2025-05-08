@@ -20,17 +20,18 @@ ddp-example/
 ## Running on Azure Machine Learning
 Submit job on Azure Machine Learning (AML) with the command:
 
-`az ml job create --file aml_job.yaml --resource-group <your-resource-group> --workspace-name <your-workspace-name>`
+`> az ml job create --file aml_job.yaml --resource-group <your-resource-group> --workspace-name <your-workspace-name>`
 
 ## Running Locally
 Submit the job locally on your machine:
-`python train.py`
+
+`> python train.py`
 
 
 ## Additional Information
 Within the code, we are using `mp.spawn()`. However, if you want to control the number of nodes and processes when launching the script from your command line, then you won't need `mp.spawn()` and use the following command:
 
-`torchrun --nnodes=NUM_NODES --nproc_per_node=NUM_GPUS_PER_NODE --node_rank=NODE_INDEX src/train.py`
+`> torchrun --nnodes=NUM_NODES --nproc_per_node=NUM_GPUS_PER_NODE --node_rank=NODE_INDEX src/train.py`
 
 Before launching this, you will have to change the `main()` function and run the `train()` function directly.
 
