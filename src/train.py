@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader, DistributedSampler
 from torchvision import datasets, transforms
 
 
-# Define exxample model
 class SimpleCNN(nn.Module):
     """
     A simple Convolutional Neural Network for MNIST digit classification.
