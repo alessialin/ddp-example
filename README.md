@@ -1,4 +1,4 @@
-# A Distributed Data Parallel Example
+# A Distributed Data Parallel Example with PyTorch
 This repository provides an example of Distributed Data Parallel (DDP) applied to a typical problem of training a CNN on the well-known MNIST dataset. 
 
 ## Azure Machine Learning
