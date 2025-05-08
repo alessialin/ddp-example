@@ -30,4 +30,3 @@ outputs:
   model:
     mode: upload
     type: uri_folder
-    path: ./outputs
