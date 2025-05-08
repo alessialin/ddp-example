@@ -25,6 +25,9 @@ command: >+
   python train.py
 
 code: .
-# # Input/output directories (optional)
-# inputs: {}
-# outputs: {}
+
+outputs:
+  model:
+    mode: upload
+    type: uri_folder
+    path: ./outputs
