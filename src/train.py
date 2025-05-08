@@ -69,7 +69,7 @@ def setup(backend: str) -> None:
 
 
 # Training function
-def train(rank: int, world_size: int, backend: str) -> None:
+def train(rank: int, world_size: int, backend: str, epochs: int = 5) -> None:
     """
     Distributed training loop for MNIST using PyTorch DDP.
 
@@ -78,6 +78,7 @@ def train(rank: int, world_size: int, backend: str) -> None:
         world_size (int): Total number of processes (GPUs across all nodes).
         backend (str): Backend to use for distributed training
             ("nccl" or "gloo").
+        epochs (int): Number of training epochs.
     """
     # Initialize the process group (if gpu init_method is env:// by default)
     device = setup(backend)
@@ -108,7 +109,7 @@ def train(rank: int, world_size: int, backend: str) -> None:
     dataloader = DataLoader(dataset, batch_size=64, sampler=sampler)
 
     # Training loop
-    for epoch in range(5):
+    for epoch in range(epochs):
         sampler.set_epoch(epoch)
         ddp_model.train()
         for batch_idx, (data, target) in enumerate(dataloader):
